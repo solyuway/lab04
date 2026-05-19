@@ -1,0 +1,59 @@
+name: CI
+
+on: 
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch: 
+
+jobs:
+  #Сборка на Linux с разными компиляторами
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Установка Cmake и компиляторов
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ clang
+
+    - name: Настройка GCC
+      if: matrix.compiler == 'gcc'
+      run: |
+        echo "CC=gcc" >> $GITHUB_ENV
+        echo "CXX=g++" >> $GITHUB_ENV
+
+    - name: Настройка Clang
+      if: matrix.compiler == 'clang'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Сборка CMake
+      run: |
+        cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
+        cmake --build _build
+        cmake --build _build --target install
+
+  #Сборка на Windows
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Установка Cmake
+      run: |
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+        refreshenv
+
+    - name: Сборка
+      run: |
+        cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
+        cmake --build _build --config Release
+        cmake --build _build --target install --config Release

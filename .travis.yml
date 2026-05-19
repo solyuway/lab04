@@ -1,0 +1,29 @@
+language: cpp
+
+#Операционная систама и версия
+os: linux
+dist: bionic # Ubuntu 18.04
+
+#Установка зависимостей
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - 11vm-toolchain-bionic-10
+    packages:
+      - cmake
+      - cmake-data
+      - g++-9
+      - clang-10
+
+#Матрица сборки с разными компиляторами
+compiler:
+  - gcc
+  - clang
+
+#Скрипт сборки
+script:
+  - cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
+  - cmake --build _build
+  - cmake --build _build --target install
+
