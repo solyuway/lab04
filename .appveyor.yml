@@ -1,46 +1,31 @@
 version: 1.0.{build}
-
-# Образы Windows
-image:
-  - Visual Studio 2019
-  - Visual Studio 2022
-
-# Платформы
+image: Visual Studio 2019
 platform:
   - x64
   - x86
-
-# Конфигурации сборки
 configuration:
   - Debug
   - Release
 
-# Установка зависимостей (если нужны)
 install:
   - echo "Installing dependencies..."
 
-# Скрипт сборки
 build_script:
   - mkdir build
   - cd build
   - cmake .. -G "Visual Studio 16 2019" -A %PLATFORM%
   - cmake --build . --config %CONFIGURATION%
 
-# Скрипт тестирования (опционально)
 test_script:
-  - cd build
   - ctest -C %CONFIGURATION% --output-on-failure
 
-# Артефакты сборки (опционально)
 artifacts:
-  - path: build/bin/$(configuration)
-    name: binaries
+  - path: build\%CONFIGURATION%\*.exe
+    name: lab04
 
-# Уведомления
 notifications:
   - provider: Email
     to:
       - your-email@example.com
     on_build_success: false
     on_build_failure: true
-    on_build_status_changed: false
