@@ -1,9 +1,6 @@
 version: 1.0.{build}
 image: Visual Studio 2019
 
-install:
-  - echo "Installing dependencies..."
-
 build_script:
   - mkdir build
   - cd build
@@ -11,16 +8,8 @@ build_script:
   - cmake --build . --config Release
 
 test_script:
-  - cd build
   - ctest -C Release --output-on-failure
 
 artifacts:
   - path: build\Release\*.exe
-    name: lab04_executable
-
-notifications:
-  - provider: Email
-    to:
-      - your-email@example.com
-    on_build_success: false
-    on_build_failure: true
+    name: lab04
