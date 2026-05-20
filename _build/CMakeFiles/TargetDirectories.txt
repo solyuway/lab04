@@ -1,7 +1,0 @@
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/lab04.dir
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/edit_cache.dir
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/rebuild_cache.dir
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/list_install_components.dir
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/install.dir
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/install/local.dir
-/home/alex/solyuway/workspace/tasks/lab04/_build/CMakeFiles/install/strip.dir

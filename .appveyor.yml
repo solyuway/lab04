@@ -1,9 +1,13 @@
 version: 1.0.{build}
 image: Visual Studio 2019
 
+before_build:
+  - if exist _build rmdir /s /q _build
+  - if exist CMakeCache.txt del CMakeCache.txt
+
 build_script:
-  - mkdir build
-  - cd build
+  - mkdir _build
+  - cd _build
   - cmake ..
   - cmake --build . --config Release
 
@@ -11,5 +15,5 @@ test_script:
   - ctest -C Release --output-on-failure
 
 artifacts:
-  - path: build\Release\*.exe
+  - path: _build\Release\*.exe
     name: lab04

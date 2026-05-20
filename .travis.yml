@@ -13,8 +13,7 @@ matrix:
       env:
         - CXX=g++-9
         - CC=gcc-9
-        - COMPILER=gcc
- 
+    
     - compiler: clang
       addons:
         apt:
@@ -25,17 +24,14 @@ matrix:
       env:
         - CXX=clang++-13
         - CC=clang-13
-        - COMPILER=clang
 
-install:
-  - echo "Installing dependencies..."
+before_script:
+  # Очищаем от старых файлов кэша
+  - rm -rf _build CMakeCache.txt CMakeFiles/
 
 script:
-  - mkdir -p build
-  - cd build
+  - mkdir _build
+  - cd _build
   - cmake .. -DCMAKE_INSTALL_PREFIX=_install
   - cmake --build .
   - cmake --build . --target install
-
-after_success:
-  - echo "Build successful!"
