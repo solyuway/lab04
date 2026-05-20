@@ -3,15 +3,12 @@
 ## Build Status
 
 ### Travis CI
-
 [![Build Status](https://travis-ci.com/solyuway/lab04.svg?branch=master)](https://travis-ci.com/solyuway/lab04)
 
 ### AppVeyor
+[![Build status](https://ci.appveyor.com/api/projects/status/github/solyuway/lab04?svg=true)](https://ci.appveyor.com/project/solyuway/lab04)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/4yrolspg59knj362/branch/master?svg=true)](https://ci.appveyor.com/project/solyuway/lab04)
-
-### GitHub Actions (дополнительно)
-
+### GitHub Actions
 [![GitHub Actions](https://github.com/solyuway/lab04/actions/workflows/ci.yml/badge.svg)](https://github.com/solyuway/lab04/actions)
 
 ## Description

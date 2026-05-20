@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/lab04.dir/link.d CMakeFiles/lab04.dir/src/main.cpp.o -o lab04
