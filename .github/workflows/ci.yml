@@ -1,39 +1,104 @@
-name: CI
-on: [push, pull_request]
+name: CI - Build Packages
+
+on:
+  push:
+    tags:
+      - 'v*'  # Автоматический запуск при пуше тега v1.0.0, v2.0.0 и т.д.
+  workflow_dispatch:  # Ручной запуск (оставляем для удобства)
+    inputs:
+      tag:
+        description: 'Tag name (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+        type: string
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake g++ lcov
-    
-    - name: Configure
-      run: |
-        mkdir -p build
-        cd build
-        cmake .. -DBUILD_TESTS=ON
-    
-    - name: Build
-      run: |
-        cd build
-        make -j2
-    
-    - name: Test
-      run: |
-        cd build
-        ./banking_tests || true
-    
-    - name: Coverage
-      run: |
-        cd build
-        lcov --capture --directory . --output-file coverage.info --no-external || true
-        lcov --list coverage.info || true
-        echo "✅ Build completed successfully"
-    
-    - name: Always success
-      run: exit 0
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      - name: Configure and build
+        run: |
+          mkdir build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=_install
+          cmake --build .
+
+      - name: Create packages
+        run: |
+          cd build
+          cpack -G TGZ
+          cpack -G DEB
+          cpack -G RPM
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            build/*.tar.gz
+            build/*.deb
+            build/*.rpm
+          if-no-files-found: error
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+
+      - name: Configure and build
+        run: |
+          mkdir build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=_install
+          cmake --build .
+
+      - name: Create packages
+        run: |
+          cd build
+          cpack -G TGZ
+          cpack -G ZIP
+          cpack -G DragNDrop
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-packages
+          path: |
+            build/*.tar.gz
+            build/*.zip
+            build/*.dmg
+          if-no-files-found: error
+
+  create-release:
+    needs: [build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
