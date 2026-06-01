@@ -1,39 +1,75 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
+    name: Build with ${{ matrix.compiler }}
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
     
-    - name: Install dependencies
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [g++, clang++]
+        include:
+          - compiler: g++
+            cxx: g++-13
+            cc: gcc-13
+            install: g++-13
+          - compiler: clang++
+            cxx: clang++-18
+            cc: clang-18
+            install: clang-18
+            extra_packages: g++-13
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install compilers
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ lcov
-    
-    - name: Configure
+        sudo apt-get install -y ${{ matrix.install }} ${{ matrix.extra_packages }}
+        
+    - name: Verify compiler versions
       run: |
-        mkdir -p build
-        cd build
-        cmake .. -DBUILD_TESTS=ON
-    
-    - name: Build
+        ${{ matrix.cxx }} --version
+        ${{ matrix.cc }} --version
+
+    - name: Configure CMake
       run: |
-        cd build
-        make -j2
-    
-    - name: Test
+        mkdir -p build-${{ matrix.compiler }}
+        cd build-${{ matrix.compiler }}
+        cmake .. \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DCMAKE_INSTALL_PREFIX=_install \
+          -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build project
       run: |
-        cd build
-        ./banking_tests || true
-    
-    - name: Coverage
+        cd build-${{ matrix.compiler }}
+        cmake --build . --config Release
+
+    - name: Run tests
       run: |
-        cd build
-        lcov --capture --directory . --output-file coverage.info --no-external || true
-        lcov --list coverage.info || true
-        echo "✅ Build completed successfully"
-    
-    - name: Always success
-      run: exit 0
+        cd build-${{ matrix.compiler }}
+        ctest --output-on-failure --timeout 60 || true
+
+    - name: Install project
+      run: |
+        cd build-${{ matrix.compiler }}
+        cmake --build . --target install
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: build-${{ matrix.compiler }}
+        path: build-${{ matrix.compiler }}/_install/
+        retention-days: 7
